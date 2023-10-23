@@ -33,10 +33,9 @@ class Calculator
     float alpha = 0.03;
     float my_lambda = 0.1;
 
-    Err min_test_err = Err{
-        train : 1,
-        test : 1,
-    };
+    // whould be updated after processing
+    // the worst case is set to be used for minimum error comparison
+    Err min_test_err = Err{train : 1, test : 1};
 
 public:
     Calculator(int factors, float alpha, float lambda)
@@ -99,20 +98,7 @@ public:
         return min_test_err;
     }
 
-    double calc_error(long start, long end)
-    {
-        long u_idx, i_idx;
-        double error = 0;
-        for (long i = start; i < end; i++)
-        {
-            u_idx = prefs[i][0];
-            i_idx = prefs[i][1];
-
-            error += abs(prefs[i][2] - dot_product(u_factors[u_idx], i_factors[i_idx], n_factors));
-        }
-        return error / (end - start);
-    }
-
+    // fills u_factors and i_factors randomly
     void fill_random_factors(std::default_random_engine eng, int n_factors)
     {
         double MIN = -0.5;
@@ -137,9 +123,24 @@ public:
         }
     }
 
+    // returns a partial vector of prefs
     long get_partial_prefs(double percent)
     {
         return (long)prefs.size() * percent;
+    }
+
+    double calc_error(long start, long end)
+    {
+        long u_idx, i_idx;
+        double error = 0;
+        for (long i = start; i < end; i++)
+        {
+            u_idx = prefs[i][0];
+            i_idx = prefs[i][1];
+
+            error += abs(prefs[i][2] - dot_product(u_factors[u_idx], i_factors[i_idx], n_factors));
+        }
+        return error / (end - start);
     }
 
     double dot_product(double *v1, double *v2, int size)
@@ -215,6 +216,9 @@ double calc_error(vector<vector<double> > X, unordered_map<long, vector<double> 
 }
 */
 
+// generates a random integer within a range
+// min: minimum integer
+// max: maximum integer
 int random_int(int min, int max)
 {
     static bool first = true;
@@ -226,6 +230,10 @@ int random_int(int min, int max)
     return min + rand() % ((max + 1) - min);
 }
 
+// generate random integer numbers
+// min: minimum integer
+// max: maximum integer
+// n: total count of generated values
 vector<int> n_random_int(int min, int max, int n)
 {
     vector<int> vec;
@@ -239,6 +247,11 @@ vector<int> n_random_int(int min, int max, int n)
     return vec;
 }
 
+// generate random float numbers
+// min: minimum integer
+// max: maximum integer
+// n: total count of generated values
+// divider: divides random generated integer by the divider value
 vector<float> n_random_float(int min, int max, int n, int divider)
 {
     vector<float> vec;
@@ -252,7 +265,9 @@ vector<float> n_random_float(int min, int max, int n, int divider)
     return vec;
 }
 
-Err grid_opt()
+// optimize using grid search, this function supports random parameter generation
+// within a defined range of factors, alphas and lambdas
+Err grid_opt(vector<int> factors, vector<float> alphas, vector<float> lambdas)
 {
     int factors_min = 2,
         factors_max = 5;
@@ -263,9 +278,21 @@ Err grid_opt()
     int lambda_min = 10,
         lambda_max = 20;
 
-    vector<int> factors = n_random_int(2, 4, 2);
-    vector<float> alphas = n_random_float(3, 15, 3, 100);
-    vector<float> lambdas = n_random_float(1, 7, 2, 10);
+    if (factors.empty())
+    {
+        factors = n_random_int(2, 4, 2);
+    }
+
+    if (alphas.empty())
+    {
+        alphas = n_random_float(1, 7, 3, 100);
+    }
+
+    if (lambdas.empty())
+    {
+        lambdas = n_random_float(3, 10, 3, 100);
+    }
+
     Err min_test_err = Err{
         train : 1,
         test : 1,
@@ -301,7 +328,18 @@ Err grid_opt()
 
 void sgd()
 {
-    Err min_grid_err = grid_opt();
+    // uncomment for random grid optimization
+    // Err min_grid_err = grid_opt(vector<int>(), vector<float>(), vector<float>());
+
+    // custom grid generation
+    Err min_grid_err = grid_opt(
+        // factors
+        vector<int>{2, 4},
+        // alphas
+        vector<float>{0.03, 0.04, 0.05, 0.1},
+        // lambdas
+        vector<float>{0.05, 0.1, 0.07, 0.08});
+
     printf("Grid Min Test error: %f\n", min_grid_err.test);
 }
 
