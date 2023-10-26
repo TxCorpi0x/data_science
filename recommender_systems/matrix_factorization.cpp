@@ -269,27 +269,21 @@ vector<float> n_random_float(int min, int max, int n, int divider)
 // within a defined range of factors, alphas and lambdas
 Err grid_opt(vector<int> factors, vector<float> alphas, vector<float> lambdas)
 {
-    int factors_min = 2,
-        factors_max = 5;
-
-    int alpha_min = 3,
-        alpha_max = 8;
-
-    int lambda_min = 10,
-        lambda_max = 20;
-
     if (factors.empty())
     {
+        // manipulate variable to cover a bigger range for factors.
         factors = n_random_int(2, 4, 2);
     }
 
     if (alphas.empty())
     {
+        // manipulate variable to cover a bigger range for alphas.
         alphas = n_random_float(1, 7, 3, 100);
     }
 
     if (lambdas.empty())
     {
+        // manipulate variable to cover a bigger range for lambdas.
         lambdas = n_random_float(3, 10, 3, 100);
     }
 
